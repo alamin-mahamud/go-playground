@@ -1,33 +1,42 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/kr/pretty"
+	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
+type Person struct {
+	Name, Phone string
+}
+
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/alamin/mahamud/api/url/{id}", simpleHandler)
-	http.Handle("/", r)
-	checkErr(http.ListenAndServe(":8080", nil))
+
+	// init mgo session
+	session, err := mgo.Dial("localhost:27017")
+	checkErr(err)
+	defer session.Close()
+	session.SetMode(mgo.Monotonic, true)
+	c := session.DB("test").C("people")
+
+	err = c.Insert(
+		&Person{"Alex", "+880 168 60 434"},
+		&Person{"Ryan", "+880 168 70 444"},
+	)
+	checkErr(err)
+
+	result := Person{}
+	err = c.Find(
+		bson.M{"name": "Alex"},
+	).One(&result)
+	checkErr(err)
+
+	fmt.Println("Phone:", result.Phone)
 }
 
 func checkErr(err error) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func simpleHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	jsonData, err := json.Marshal(fmt.Sprintf("%#v", pretty.Formatter(r.URL)))
-	if err != nil {
-		fmt.Fprintf(w, "Error: %s", err)
-	}
-	w.Write(jsonData)
 }
