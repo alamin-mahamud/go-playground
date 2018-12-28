@@ -2,3 +2,4 @@ package: github.com/alamin-mahamud/go-playground
 import:
 - package: github.com/gorilla/mux
 - package: github.com/kr/pretty
+- package: gopkg.in/mgo.v2
