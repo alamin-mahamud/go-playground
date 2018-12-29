@@ -1,38 +1,32 @@
 package main
 
 import (
-	"fmt"
+	"net/http"
+	"os"
+	"strconv"
 
+	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
+	"github.com/juju/mgosession"
 	mgo "gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 )
 
-type Person struct {
-	Name, Phone string
-}
-
 func main() {
+	err := godotenv.Load("config/.env")
+	checkErr(err)
 
-	// init mgo session
-	session, err := mgo.Dial("localhost:27017")
+	session, err := mgo.Dial(os.Getenv("MONGODB_HOST"))
 	checkErr(err)
 	defer session.Close()
+
 	session.SetMode(mgo.Monotonic, true)
-	c := session.DB("test").C("people")
+	cPool, err := strconv.Atoi(os.Getenv("MONGODB_CONNECTION_POOL"))
+	checkErrMongo(err)
+	mPool := mgosession.NewPool(nil, session, cPool)
+	defer mPool.Close()
 
-	err = c.Insert(
-		&Person{"Alex", "+880 168 60 434"},
-		&Person{"Ryan", "+880 168 70 444"},
-	)
-	checkErr(err)
-
-	result := Person{}
-	err = c.Find(
-		bson.M{"name": "Alex"},
-	).One(&result)
-	checkErr(err)
-
-	fmt.Println("Phone:", result.Phone)
+	r := mux.NewRouter()
+	http.Handle("/", r)
 }
 
 func checkErr(err error) {
