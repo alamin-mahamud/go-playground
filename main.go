@@ -2,17 +2,20 @@ package main
 
 import (
 	"fmt"
-
-	"golang.org/x/crypto/bcrypt"
+	"github.com/go-redis/redis"
 )
 
 func main() {
-	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("testing"), 10)
-	fmt.Println(string(hashedPassword))
+	ExampleNewCient()
 }
 
-func checkErr(err error) {
-	if err != nil {
-		panic(err)
+func ExampleNewCient() {
+	options := redis.Options{
+		Addr: "localhost:6379",
+		Password: "", // No Password Set
+		DB: 0, // use default database
 	}
+	client := redis.NewClient(&options)
+	pong, err := client.Ping().Result()
+	fmt.Println(pong, err)
 }

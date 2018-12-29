@@ -5,3 +5,5 @@ import:
 - package: gopkg.in/mgo.v2
 - package: github.com/juju/mgosession
   version: ^1.0.0
+- package: github.com/go-redis/redis
+  version: ^6.15.0
