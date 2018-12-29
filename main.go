@@ -1,32 +1,14 @@
 package main
 
 import (
-	"net/http"
-	"os"
-	"strconv"
+	"fmt"
 
-	"github.com/gorilla/mux"
-	"github.com/joho/godotenv"
-	"github.com/juju/mgosession"
-	mgo "gopkg.in/mgo.v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
-	err := godotenv.Load("config/.env")
-	checkErr(err)
-
-	session, err := mgo.Dial(os.Getenv("MONGODB_HOST"))
-	checkErr(err)
-	defer session.Close()
-
-	session.SetMode(mgo.Monotonic, true)
-	cPool, err := strconv.Atoi(os.Getenv("MONGODB_CONNECTION_POOL"))
-	checkErrMongo(err)
-	mPool := mgosession.NewPool(nil, session, cPool)
-	defer mPool.Close()
-
-	r := mux.NewRouter()
-	http.Handle("/", r)
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("testing"), 10)
+	fmt.Println(string(hashedPassword))
 }
 
 func checkErr(err error) {
